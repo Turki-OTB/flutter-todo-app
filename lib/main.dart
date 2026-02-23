@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.yellow),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
       ),
       home: const MyHomePage(title: 'My To-Do'),
     );
@@ -71,6 +72,15 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.add,
+              color: const Color.fromARGB(255, 15, 44, 206),
+            ),
+          ),
+        ],
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
@@ -89,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
           // action in the IDE, or press "p" in the console), to see the
           // wireframe for each widget.
-          mainAxisAlignment: .center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('Welcome to My To-Do app, I hope you enjoy it :)'),
           ],
