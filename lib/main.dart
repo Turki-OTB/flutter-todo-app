@@ -55,6 +55,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<Map<String, dynamic>> tasks = [
+    {
+      'title': 'Studying',
+      'description': "Study Flutter, and get better",
+      'isComplete': false,
+    },
+    {
+      'title': 'Reading',
+      'description': "Read books and get better",
+      'isComplete': false,
+    },
+  ];
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -101,7 +113,9 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Welcome to My To-Do app, I hope you enjoy it :)'),
+            ...tasks.map((task) {
+              return Text(task['title']);
+            }),
           ],
         ),
       ),
