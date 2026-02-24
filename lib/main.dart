@@ -116,7 +116,17 @@ class _MyHomePageState extends State<MyHomePage> {
             ...tasks.map((task) {
               return Card(
                 child: Column(
-                  children: [Text(task['title']), Text(task['description'])],
+                  children: [
+                    Text(task['title']),
+                    Text(task['description']),
+                    Row(
+                      children: [
+                        IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
+                        IconButton(onPressed: () {}, icon: Icon(Icons.check)),
+                        IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                      ],
+                    ),
+                  ],
                 ),
               );
             }),
