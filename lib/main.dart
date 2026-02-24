@@ -114,7 +114,11 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ...tasks.map((task) {
-              return Text(task['title']);
+              return Card(
+                child: Column(
+                  children: [Text(task['title']), Text(task['description'])],
+                ),
+              );
             }),
           ],
         ),
