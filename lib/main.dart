@@ -68,10 +68,51 @@ class _MyHomePageState extends State<MyHomePage> {
     },
   ];
   void _showAddTaskDialog() {
+    TextEditingController titleController = TextEditingController();
+    TextEditingController desController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(title: Text('Add a Task'));
+        return AlertDialog(
+          title: Text('Add a Task'),
+          content: Column(
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(labelText: 'Title'),
+              ),
+              TextField(
+                controller: desController,
+                decoration: InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                String title = titleController.text;
+                String description = desController.text;
+                Map<String, dynamic> newTask = {
+                  'title': title,
+                  'description': description,
+                  'isComplete': false,
+                };
+
+                setState(() {
+                  tasks.add(newTask);
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Add'),
+            ),
+          ],
+        );
       },
     );
   }
