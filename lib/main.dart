@@ -103,7 +103,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   'description': description,
                   'isComplete': false,
                 };
-
                 setState(() {
                   tasks.add(newTask);
                 });
@@ -165,12 +164,42 @@ class _MyHomePageState extends State<MyHomePage> {
               return Card(
                 child: Column(
                   children: [
-                    Text(task['title']),
-                    Text(task['description']),
+                    Text(
+                      task['title'],
+                      style: TextStyle(
+                        decoration: task['isComplete']
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                      ),
+                    ),
+                    Text(
+                      task['description'],
+                      style: TextStyle(
+                        decoration: task['isComplete']
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                      ),
+                    ),
                     Row(
                       children: [
-                        IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
-                        IconButton(onPressed: () {}, icon: Icon(Icons.check)),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              tasks.remove(
+                                task,
+                              ); // 'task' is available from .map()
+                            });
+                          },
+                          icon: Icon(Icons.delete),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              task['isComplete'] = !task['isComplete'];
+                            });
+                          },
+                          icon: Icon(Icons.check),
+                        ),
                         IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
                       ],
                     ),
