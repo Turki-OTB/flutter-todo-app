@@ -116,6 +116,55 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void _showEditTaskDialog(Map<String, dynamic> task) {
+    // task parameter = which task to
+    TextEditingController titleController = TextEditingController(
+      text: task['title'],
+    );
+    TextEditingController descriptionController = TextEditingController(
+      text: task['description'],
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Edit Task'), // ← Changed from "Add"
+          content: Column(
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(labelText: 'Title'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // UPDATE logic will go here (different from Add!)
+                setState(() {
+                  task['title'] = titleController.text;
+                  task['description'] = descriptionController.text;
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Save'), // ← Changed from "Add"
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -200,7 +249,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           },
                           icon: Icon(Icons.check),
                         ),
-                        IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                        IconButton(
+                          onPressed: () {
+                            _showEditTaskDialog(task);
+                          },
+                          icon: Icon(Icons.edit),
+                        ),
                       ],
                     ),
                   ],
