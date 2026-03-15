@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -55,18 +57,44 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<Map<String, dynamic>> tasks = [
-    {
-      'title': 'Studying',
-      'description': "Study Flutter, and get better",
-      'isComplete': false,
-    },
-    {
-      'title': 'Reading',
-      'description': "Read books and get better",
-      'isComplete': false,
-    },
-  ];
+  List<Map<String, dynamic>> tasks = [];
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      _loadTasks();
+    });
+  }
+
+  Future<void> _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    String tasksJson = jsonEncode(tasks);
+    await prefs.setString('flutter.tasks', tasksJson); // ← Full key!
+    print('SAVED: $tasksJson');
+  }
+
+  Future<void> _loadTasks() async {
+    try {
+      await Future.delayed(Duration(milliseconds: 100)); // Small delay
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.reload(); // Force reload from storage
+      String? tasksJson = prefs.getString('flutter.tasks');
+      print('LOADED: $tasksJson');
+
+      if (tasksJson != null && tasksJson.isNotEmpty) {
+        setState(() {
+          tasks = List<Map<String, dynamic>>.from(
+            jsonDecode(
+              tasksJson,
+            ).map((task) => Map<String, dynamic>.from(task)),
+          );
+        });
+      }
+    } catch (e) {
+      print('Load error: $e');
+    }
+  }
+
   void _showAddTaskDialog() {
     TextEditingController titleController = TextEditingController();
     TextEditingController desController = TextEditingController();
@@ -106,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   tasks.add(newTask);
                 });
+                _saveTasks();
                 Navigator.pop(context);
               },
               child: Text('Add'),
@@ -155,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   task['title'] = titleController.text;
                   task['description'] = descriptionController.text;
                 });
+                _saveTasks();
                 Navigator.pop(context);
               },
               child: Text('Save'), // ← Changed from "Add"
@@ -238,6 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 task,
                               ); // 'task' is available from .map()
                             });
+                            _saveTasks();
                           },
                           icon: Icon(Icons.delete),
                         ),
@@ -246,6 +277,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             setState(() {
                               task['isComplete'] = !task['isComplete'];
                             });
+                            _saveTasks();
                           },
                           icon: Icon(Icons.check),
                         ),
