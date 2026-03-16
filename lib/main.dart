@@ -126,6 +126,14 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 String title = titleController.text;
                 String description = desController.text;
+                if (title.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('You can not add a task with no title!'),
+                    ),
+                  );
+                  return;
+                }
                 Map<String, dynamic> newTask = {
                   'title': title,
                   'description': description,
@@ -136,6 +144,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
                 _saveTasks();
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Task added!'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
               },
               child: Text('Add'),
             ),
@@ -186,6 +200,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
                 _saveTasks();
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Task Updated!'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
               },
               child: Text('Save'), // ← Changed from "Add"
             ),
@@ -286,12 +306,40 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: [
                               IconButton(
                                 onPressed: () {
-                                  setState(() {
-                                    tasks.remove(
-                                      task,
-                                    ); // 'task' is available from .map()
-                                  });
-                                  _saveTasks();
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Delete Task'),
+                                      content: Text(
+                                        'Are you sure that you want to delete "${task['title']}"?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            setState(() {
+                                              tasks.remove(
+                                                task,
+                                              ); // 'task' is available from .map()
+                                            });
+                                            _saveTasks();
+                                          },
+                                          child: Text(
+                                            'Delete',
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 },
                                 icon: Icon(Icons.delete, color: Colors.red),
                               ),
