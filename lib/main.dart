@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
       home: const MyHomePage(title: 'My To-Do'),
     );
@@ -239,60 +239,89 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ...tasks.map((task) {
-              return Card(
-                child: Column(
-                  children: [
-                    Text(
-                      task['title'],
-                      style: TextStyle(
-                        decoration: task['isComplete']
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                      ),
-                    ),
-                    Text(
-                      task['description'],
-                      style: TextStyle(
-                        decoration: task['isComplete']
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              tasks.remove(
-                                task,
-                              ); // 'task' is available from .map()
-                            });
-                            _saveTasks();
-                          },
-                          icon: Icon(Icons.delete),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              task['isComplete'] = !task['isComplete'];
-                            });
-                            _saveTasks();
-                          },
-                          icon: Icon(Icons.check),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            _showEditTaskDialog(task);
-                          },
-                          icon: Icon(Icons.edit),
-                        ),
-                      ],
-                    ),
-                  ],
+            if (tasks.isEmpty)
+              Padding(
+                padding: EdgeInsets.all(32),
+                child: Text(
+                  'Enjoy your day, or add some tasks! :)',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
-              );
-            }),
+              )
+            else
+              ...tasks.map((task) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Card(
+                    elevation: 4,
+                    color: Colors.grey.shade50,
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Text(
+                            task['title'],
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              decoration: task['isComplete']
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            task['description'],
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                              decoration: task['isComplete']
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    tasks.remove(
+                                      task,
+                                    ); // 'task' is available from .map()
+                                  });
+                                  _saveTasks();
+                                },
+                                icon: Icon(Icons.delete, color: Colors.red),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    task['isComplete'] = !task['isComplete'];
+                                  });
+                                  _saveTasks();
+                                },
+                                icon: Icon(
+                                  Icons.check,
+                                  color: Colors.green,
+                                  size: 40,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  _showEditTaskDialog(task);
+                                },
+                                icon: Icon(Icons.edit),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
           ],
         ),
       ),
