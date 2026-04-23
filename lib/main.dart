@@ -6,51 +6,50 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
-
+  @override
+  State<MyApp> createState() => _MyAppState();
   // This widget is the root of your application.
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.system;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
-      home: const MyHomePage(title: 'My To-Do'),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          brightness: Brightness.dark,
+        ),
+      ),
+      themeMode: _themeMode,
+      home: MyHomePage(title: 'My To-Do', onThemeChanged: _updateTheme),
     );
+  }
+
+  void _updateTheme(ThemeMode newTheme) {
+    setState(() {
+      _themeMode = newTheme;
+    });
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  const MyHomePage({
+    super.key,
+    required this.title,
+    required this.onThemeChanged,
+  });
 
   final String title;
+  final void Function(ThemeMode) onThemeChanged;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -69,8 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _saveTasks() async {
     final prefs = await SharedPreferences.getInstance();
     String tasksJson = jsonEncode(tasks);
-    await prefs.setString('flutter.tasks', tasksJson); // ← Full key!
-    print('SAVED: $tasksJson');
+    await prefs.setString('tasks', tasksJson); // ← Full key!
   }
 
   Future<void> _loadTasks() async {
@@ -78,8 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await Future.delayed(Duration(milliseconds: 100)); // Small delay
       final prefs = await SharedPreferences.getInstance();
       await prefs.reload(); // Force reload from storage
-      String? tasksJson = prefs.getString('flutter.tasks');
-      print('LOADED: $tasksJson');
+      String? tasksJson = prefs.getString('tasks');
 
       if (tasksJson != null && tasksJson.isNotEmpty) {
         setState(() {
@@ -104,6 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return AlertDialog(
           title: Text('Add a Task'),
           content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
@@ -173,6 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return AlertDialog(
           title: Text('Edit Task'), // ← Changed from "Add"
           content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
@@ -235,143 +234,179 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: _showAddTaskDialog,
             icon: Icon(
               Icons.add,
-              color: const Color.fromARGB(255, 15, 44, 206),
+              color: (Theme.of(context).brightness == Brightness.light)
+                  ? Colors.black
+                  : Colors.amber,
+              size: 32,
             ),
+          ),
+          IconButton(
+            onPressed: () {
+              if (Theme.of(context).brightness == Brightness.dark) {
+                widget.onThemeChanged(ThemeMode.light);
+              } else {
+                widget.onThemeChanged(ThemeMode.dark);
+              }
+            },
+            icon: (Theme.of(context).brightness == Brightness.dark)
+                ? Icon(Icons.light_mode, size: 32)
+                : Icon(Icons.dark_mode, size: 32),
           ),
         ],
       ),
-      body: Center(
+      body: ListView(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (tasks.isEmpty)
-              Padding(
-                padding: EdgeInsets.all(32),
-                child: Text(
-                  'Enjoy your day, or add some tasks! :)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              )
-            else
-              ...tasks.map((task) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Card(
-                    elevation: 4,
-                    color: Colors.grey.shade50,
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Text(
-                            task['title'],
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              decoration: task['isComplete']
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            task['description'],
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                              decoration: task['isComplete']
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: Text('Delete Task'),
-                                      content: Text(
-                                        'Are you sure that you want to delete "${task['title']}"?',
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            setState(() {
-                                              tasks.remove(
-                                                task,
-                                              ); // 'task' is available from .map()
-                                            });
-                                            _saveTasks();
-                                          },
-                                          child: Text(
-                                            'Delete',
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                icon: Icon(Icons.delete, color: Colors.red),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    task['isComplete'] = !task['isComplete'];
-                                  });
-                                  _saveTasks();
-                                },
-                                icon: Icon(
-                                  Icons.check,
-                                  color: Colors.green,
-                                  size: 40,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  _showEditTaskDialog(task);
-                                },
-                                icon: Icon(Icons.edit),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+
+        // Column is also a layout widget. It takes a list of children and
+        // arranges them vertically. By default, it sizes itself to fit its
+        // children horizontally, and tries to be as tall as its parent.
+        //
+        // Column has various properties to control how it sizes itself and
+        // how it positions its children. Here we use mainAxisAlignment to
+        // center the children vertically; the main axis here is the vertical
+        // axis because Columns are vertical (the cross axis would be
+        // horizontal).
+        //
+        // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+        // action in the IDE, or press "p" in the console), to see the
+        // wireframe for each widget.
+        children: [
+          if (tasks.isEmpty)
+            Padding(
+              padding: EdgeInsets.all(32),
+              child: Text(
+                'Enjoy your day, or add some tasks! :)',
+                textAlign: TextAlign.center,
+                style: (Theme.of(context).brightness == Brightness.light)
+                    ? TextStyle(fontSize: 18, color: Colors.indigo)
+                    : TextStyle(fontSize: 18, color: Colors.amber),
+              ),
+            )
+          else
+            ...tasks.map((task) {
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                child: Card(
+                  elevation: 5,
+                  color: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.circular(12),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.outline,
+                      width: 1,
                     ),
                   ),
-                );
-              }),
-          ],
-        ),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text(
+                          task['title'],
+                          style:
+                              (Theme.of(context).brightness == Brightness.light)
+                              ? TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: task['isComplete']
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                )
+                              : TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: task['isComplete']
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          task['description'],
+                          style: TextStyle(
+                            fontSize: 16,
+                            color:
+                                (Theme.of(context).brightness ==
+                                    Brightness.light)
+                                ? Colors.black
+                                : Colors.amber,
+                            decoration: task['isComplete']
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Delete Task'),
+                                    content: Text(
+                                      'Are you sure that you want to delete "${task['title']}"?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          setState(() {
+                                            tasks.remove(
+                                              task,
+                                            ); // 'task' is available from .map()
+                                          });
+                                          _saveTasks();
+                                        },
+                                        child: Text(
+                                          'Delete',
+                                          style: TextStyle(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.delete, color: Colors.red),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  task['isComplete'] = !task['isComplete'];
+                                });
+                                _saveTasks();
+                              },
+                              icon: Icon(
+                                Icons.check,
+                                color: Colors.green,
+                                size: 40,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                _showEditTaskDialog(task);
+                              },
+                              icon: Icon(Icons.edit),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+        ],
       ),
     );
   }
