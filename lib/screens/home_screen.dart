@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/task.dart';
+import '../widgets/task_card.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -241,125 +242,43 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           else
             ...tasks.map((task) {
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                child: Card(
-                  elevation: 5,
-                  color: Theme.of(context).colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadiusGeometry.circular(12),
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.outline,
-                      width: 1,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Text(
-                          task.title,
-                          style:
-                              (Theme.of(context).brightness == Brightness.light)
-                              ? TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: task.isComplete
-                                      ? TextDecoration.lineThrough
-                                      : TextDecoration.none,
-                                )
-                              : TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: task.isComplete
-                                      ? TextDecoration.lineThrough
-                                      : TextDecoration.none,
-                                ),
+              return TaskCard(
+                task: task,
+                onToggleComplete: () {
+                  setState(() {
+                    task.isComplete = !task.isComplete;
+                  });
+                  _saveTasks();
+                },
+                onEdit: () => _showEditTaskDialog(task),
+                onDelete: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Delete Task'),
+                      content: Text(
+                        'Are you sure you want to delete "${task.title}"?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Cancel'),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          task.description,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color:
-                                (Theme.of(context).brightness ==
-                                    Brightness.light)
-                                ? Colors.black
-                                : Colors.amber,
-                            decoration: task.isComplete
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            setState(() => tasks.remove(task));
+                            _saveTasks();
+                          },
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
                           ),
-                        ),
-                        SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Delete Task'),
-                                    content: Text(
-                                      'Are you sure that you want to delete "${task.title}"?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          setState(() {
-                                            tasks.remove(
-                                              task,
-                                            ); // 'task' is available from .map()
-                                          });
-                                          _saveTasks();
-                                        },
-                                        child: Text(
-                                          'Delete',
-                                          style: TextStyle(
-                                            color: Colors.red,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.delete, color: Colors.red),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  task.isComplete = !task.isComplete;
-                                });
-                                _saveTasks();
-                              },
-                              icon: Icon(
-                                Icons.check,
-                                color: Colors.green,
-                                size: 40,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                _showEditTaskDialog(task);
-                              },
-                              icon: Icon(Icons.edit),
-                            ),
-                          ],
                         ),
                       ],
                     ),
-                  ),
-                ),
+                  );
+                },
               );
             }),
         ],
